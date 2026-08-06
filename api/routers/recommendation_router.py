@@ -12,7 +12,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from fastapi import APIRouter
 
-from smart_agriculture.modules.recommendation.engine import recommend, Recommendation
+from modules.recommendation.engine import recommend, Recommendation
 
 router = APIRouter()
 

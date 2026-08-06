@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from torchvision import transforms
 
-from smart_agriculture.config.settings import DISEASE_IMAGE_SIZE
+from config.settings import DISEASE_IMAGE_SIZE
 
 # ---------------------------------------------------------------------------
 # Training transforms (with augmentation)

@@ -14,8 +14,9 @@ import pytest
 import torch
 from PIL import Image
 from io import BytesIO
+from typing import cast
 
-from smart_agriculture.modules.disease_detection.preprocessing import (
+from modules.disease_detection.preprocessing import (
     train_transforms,
     val_transforms,
 )
@@ -26,22 +27,22 @@ class TestTransforms:
         return Image.new("RGB", (300, 300), color="green")
 
     def test_train_transform_shape(self):
-        tensor = train_transforms(self._dummy_image())
+        tensor = cast(torch.Tensor, train_transforms(self._dummy_image()))
         assert tensor.shape == (3, 224, 224)
 
     def test_val_transform_shape(self):
-        tensor = val_transforms(self._dummy_image())
+        tensor = cast(torch.Tensor, val_transforms(self._dummy_image()))
         assert tensor.shape == (3, 224, 224)
 
     def test_transforms_normalize(self):
-        tensor = val_transforms(self._dummy_image())
+        tensor = cast(torch.Tensor, val_transforms(self._dummy_image()))
         # After normalization values should NOT all be in [0, 1]
         assert tensor.min() < 0 or tensor.max() > 1
 
 
 class TestModelBuilder:
     def test_build_model_output_shape(self):
-        from smart_agriculture.modules.disease_detection.train import _build_model
+        from modules.disease_detection.train import _build_model
         model = _build_model(num_classes=5)
         dummy = torch.randn(1, 3, 224, 224)
         out = model(dummy)
@@ -50,7 +51,7 @@ class TestModelBuilder:
 
 class TestPredictGuard:
     def test_predict_raises_without_model(self):
-        from smart_agriculture.modules.disease_detection.predict import predict
+        from modules.disease_detection.predict import predict
         img = Image.new("RGB", (224, 224), color="red")
         buf = BytesIO()
         img.save(buf, format="PNG")

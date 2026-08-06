@@ -31,7 +31,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, models
 from sklearn.metrics import classification_report, confusion_matrix
 
-from smart_agriculture.config.settings import (
+from config.settings import (
     DISEASE_BATCH_SIZE,
     DISEASE_CLASS_NAMES_PATH,
     DISEASE_EPOCHS,
@@ -40,7 +40,7 @@ from smart_agriculture.config.settings import (
     DISEASE_MODEL_PATH,
     DISEASE_VALIDATION_SPLIT,
 )
-from smart_agriculture.modules.disease_detection.preprocessing import (
+from modules.disease_detection.preprocessing import (
     train_transforms,
     val_transforms,
 )
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
     if len(sys.argv) < 2:
-        print("Usage: python -m smart_agriculture.modules.disease_detection.train <dataset_root>")
+        print("Usage: python -m modules.disease_detection.train <dataset_root>")
         sys.exit(1)
     summary = train(sys.argv[1])
     print(json.dumps({k: v for k, v in summary.items() if k != "confusion_matrix"}, indent=2))

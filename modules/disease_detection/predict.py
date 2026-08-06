@@ -16,11 +16,11 @@ from PIL import Image
 from torchvision import models
 import torch.nn as nn
 
-from smart_agriculture.config.settings import (
+from config.settings import (
     DISEASE_CLASS_NAMES_PATH,
     DISEASE_MODEL_PATH,
 )
-from smart_agriculture.modules.disease_detection.preprocessing import val_transforms
+from modules.disease_detection.preprocessing import val_transforms
 
 
 def _load_model() -> tuple[nn.Module, list[str]]:

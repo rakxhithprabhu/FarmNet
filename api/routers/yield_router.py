@@ -45,7 +45,7 @@ class YieldOutput(BaseModel):
 async def predict_yield(data: YieldInput):
     """Predict crop yield from the provided features."""
     try:
-        from smart_agriculture.modules.yield_prediction.predict import predict
+        from modules.yield_prediction.predict import predict
         result = predict(data.model_dump())
         return YieldOutput(predicted_yield=round(result, 4))
     except FileNotFoundError:
@@ -61,7 +61,7 @@ async def predict_yield(data: YieldInput):
 async def train_yield_model():
     """Train (or retrain) the yield prediction model and return metrics."""
     try:
-        from smart_agriculture.modules.yield_prediction.train import train_and_select
+        from modules.yield_prediction.train import train_and_select
         summary = train_and_select()
         return summary
     except Exception as exc:

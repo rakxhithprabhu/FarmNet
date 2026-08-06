@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from App1.config.settings import YIELD_DATASET_PATH
+from config.settings import YIELD_DATASET_PATH
 
 
 SOIL_TYPES = ["clay", "sandy", "loamy", "silt", "peat"]
