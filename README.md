@@ -15,31 +15,35 @@ An **Integrated Machine Learning-Based Smart Agriculture Platform** that provide
 ## Project Structure
 
 ```
-smart_agriculture/
+.
+├── __init__.py
 ├── config/
 │   └── settings.py              # Central configuration
 ├── data/
 │   ├── generate_dataset.py      # Synthetic dataset generator
-│   └── crop_yield.csv            # (generated)
-├── models/                       # Persisted model artefacts
+│   └── crop_yield.csv           # (generated)
+├── models/                      # Persisted model artefacts
 ├── modules/
+│   ├── __init__.py
 │   ├── yield_prediction/
-│   │   ├── preprocessing.py      # Data cleaning & feature encoding
-│   │   ├── train.py              # Model comparison & selection
-│   │   └── predict.py            # Inference helper
+│   │   ├── preprocessing.py     # Data cleaning & feature encoding
+│   │   ├── train.py             # Model comparison & selection
+│   │   └── predict.py           # Inference helper
 │   ├── disease_detection/
-│   │   ├── preprocessing.py      # Image transforms & augmentation
-│   │   ├── train.py              # ResNet-18 fine-tuning
-│   │   └── predict.py            # Image classification inference
+│   │   ├── preprocessing.py     # Image transforms & augmentation
+│   │   ├── train.py             # ResNet-18 fine-tuning
+│   │   └── predict.py           # Image classification inference
 │   └── recommendation/
-│       └── engine.py             # Rule-based recommendation logic
+│       └── engine.py            # Rule-based recommendation logic
 ├── api/
-│   ├── main.py                   # FastAPI app entry-point
+│   ├── __init__.py
+│   ├── main.py                  # FastAPI app entry-point
 │   └── routers/
-│       ├── yield_router.py       # /api/yield endpoints
-│       ├── disease_router.py     # /api/disease endpoints
+│       ├── yield_router.py      # /api/yield endpoints
+│       ├── disease_router.py    # /api/disease endpoints
 │       └── recommendation_router.py  # /api/recommend endpoints
 ├── tests/
+│   ├── __init__.py
 │   ├── test_yield_prediction.py
 │   ├── test_disease_detection.py
 │   ├── test_recommendation.py
@@ -54,19 +58,19 @@ smart_agriculture/
 ### 1. Install Dependencies
 
 ```bash
-pip install -r smart_agriculture/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 2. Generate Synthetic Dataset (for development)
 
 ```bash
-python -m smart_agriculture.data.generate_dataset
+python -m data.generate_dataset
 ```
 
 ### 3. Train the Yield Prediction Model
 
 ```bash
-python -m smart_agriculture.modules.yield_prediction.train
+python -m modules.yield_prediction.train
 ```
 
 ### 4. Train the Disease Detection Model
@@ -74,13 +78,13 @@ python -m smart_agriculture.modules.yield_prediction.train
 Requires the [PlantVillage dataset](https://github.com/spMohanty/PlantVillage-Dataset):
 
 ```bash
-python -m smart_agriculture.modules.disease_detection.train /path/to/plantvillage
+python -m modules.disease_detection.train /path/to/plantvillage
 ```
 
 ### 5. Start the API Server
 
 ```bash
-uvicorn smart_agriculture.api.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Then visit **http://localhost:8000/docs** for the interactive Swagger UI.
@@ -88,7 +92,7 @@ Then visit **http://localhost:8000/docs** for the interactive Swagger UI.
 ### 6. Run Tests
 
 ```bash
-pytest smart_agriculture/tests/ -v
+python -m pytest tests/ -v
 ```
 
 ---

@@ -9,9 +9,9 @@ Mounts three routers:
 
 from fastapi import FastAPI
 
-from smart_agriculture.api.routers.yield_router import router as yield_router
-from smart_agriculture.api.routers.disease_router import router as disease_router
-from smart_agriculture.api.routers.recommendation_router import router as rec_router
+from api.routers.yield_router import router as yield_router
+from api.routers.disease_router import router as disease_router
+from api.routers.recommendation_router import router as rec_router
 
 app = FastAPI(
     title="Smart Agriculture Platform",

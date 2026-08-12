@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from smart_agriculture.modules.recommendation.engine import (
+from modules.recommendation.engine import (
     Recommendation,
     recommend,
     _classify_yield,

@@ -34,7 +34,7 @@ class DiseaseOutput(BaseModel):
 async def predict_disease(file: UploadFile = File(...)):
     """Classify a crop leaf image and return the disease class."""
     try:
-        from smart_agriculture.modules.disease_detection.predict import predict
+        from modules.disease_detection.predict import predict
         contents = await file.read()
         result = predict(contents)
         return DiseaseOutput(
@@ -61,7 +61,7 @@ async def train_disease_model(dataset_root: str):
         Server-side path to PlantVillage dataset root.
     """
     try:
-        from smart_agriculture.modules.disease_detection.train import train
+        from modules.disease_detection.train import train
         summary = train(dataset_root)
         return summary
     except Exception as exc:
