@@ -23,6 +23,7 @@ YIELD_DATASET_PATH = DATA_DIR / "crop_yield.csv"
 YIELD_MODEL_PATH = MODEL_DIR / "yield_model.joblib"
 
 DISEASE_MODEL_PATH = MODEL_DIR / "disease_model.pt"
+DISEASE_METADATA_PATH = MODEL_DIR / "disease_model_metadata.json"
 DISEASE_CLASS_NAMES_PATH = MODEL_DIR / "disease_classes.json"
 
 # ---------------------------------------------------------------------------
@@ -123,11 +124,33 @@ ENABLE_SHAP = True
 # ---------------------------------------------------------------------------
 
 DISEASE_IMAGE_SIZE = (224, 224)
-DISEASE_BATCH_SIZE = 32
+DISEASE_BATCH_SIZE = 16
 DISEASE_EPOCHS = 10
 DISEASE_LEARNING_RATE = 1e-4
 DISEASE_VALIDATION_SPLIT = 0.2
+DISEASE_TEST_SPLIT = 0.2
 DISEASE_NUM_CLASSES: int | None = None
+DISEASE_RANDOM_SEED = 42
+DISEASE_NUM_WORKERS = 0
+DISEASE_EARLY_STOPPING_PATIENCE = 5
+DISEASE_CROP_LOSS_WEIGHT = 0.3
+DISEASE_DISEASE_LOSS_WEIGHT = 0.4
+DISEASE_SEVERITY_LOSS_WEIGHT = 0.3
+DISEASE_TRAIN_TEST_SPLIT = 0.2
+DISEASE_TABULAR_FEATURES = [
+    "temperature",
+    "humidity",
+    "rainfall",
+    "season",
+    "soil_moisture",
+    "pH",
+    "N",
+    "P",
+    "K",
+]
+DISEASE_IMAGE_DIR = DATA_DIR / "disease" / "images"
+DISEASE_DATASET_PATH = DATA_DIR / "disease" / "labels.csv"
+DISEASE_SEASON_COLUMN = "season"
 
 # ---------------------------------------------------------------------------
 # Weather API (Future Use)
