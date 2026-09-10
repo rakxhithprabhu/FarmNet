@@ -18,7 +18,7 @@ MODEL_DIR = BASE_DIR / "models"
 YIELD_DATASET_PATH = DATA_DIR / "crop_yield.csv"
 YIELD_MODEL_PATH = MODEL_DIR / "yield_model.joblib"
 
-DISEASE_MODEL_PATH = MODEL_DIR / "disease_model.pt"
+DISEASE_MODEL_PATH = MODEL_DIR / "disease_model.keras"
 DISEASE_CLASS_NAMES_PATH = MODEL_DIR / "disease_classes.json"
 
 # ---------------------------------------------------------------------------
@@ -48,10 +48,13 @@ YIELD_RANDOM_STATE = 42
 # Disease Detection – training hyper-parameters
 # ---------------------------------------------------------------------------
 DISEASE_IMAGE_SIZE = (224, 224)
+DISEASE_DATASET_DIR = DATA_DIR / "color"
 DISEASE_BATCH_SIZE = 32
 DISEASE_EPOCHS = 10
-DISEASE_LEARNING_RATE = 1e-4
-DISEASE_VALIDATION_SPLIT = 0.2
+DISEASE_FINE_TUNE_EPOCHS = 10
+DISEASE_LEARNING_RATE = 1e-3
+DISEASE_FINE_TUNE_LEARNING_RATE = 1e-5
+DISEASE_SEED = 42
 DISEASE_NUM_CLASSES: int | None = None  # set dynamically during training
 
 # ---------------------------------------------------------------------------

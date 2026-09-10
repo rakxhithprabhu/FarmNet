@@ -1,65 +1,48 @@
-"""
-Inference helper for the Crop Disease Detection module.
-
-Loads the saved ResNet-18 model and returns the predicted disease class
-for a given leaf image.
-"""
+"""Inference helpers for the EfficientNet-B0 disease classifier."""
 
 from __future__ import annotations
 
 import json
 from io import BytesIO
-from pathlib import Path
 
-import torch
+import tensorflow as tf
 from PIL import Image
-from torchvision import models
-import torch.nn as nn
 
-from smart_agriculture.config.settings import (
-    DISEASE_CLASS_NAMES_PATH,
-    DISEASE_MODEL_PATH,
-)
-from smart_agriculture.modules.disease_detection.preprocessing import val_transforms
+from config.settings import DISEASE_CLASS_NAMES_PATH, DISEASE_MODEL_PATH
+from modules.disease_detection.preprocessing import preprocess_image
 
 
-def _load_model() -> tuple[nn.Module, list[str]]:
-    """Load saved model weights and class names."""
-    with open(DISEASE_CLASS_NAMES_PATH) as f:
-        class_names: list[str] = json.load(f)
+def _load_model() -> tuple[tf.keras.Model, list[str]]:
+    with open(DISEASE_CLASS_NAMES_PATH, encoding="utf-8") as file:
+        mapping = json.load(file)
+    class_names = [mapping[str(index)] for index in range(len(mapping))] if isinstance(mapping, dict) else mapping
+    return tf.keras.models.load_model(DISEASE_MODEL_PATH), class_names
 
-    model = models.resnet18(weights=None)
-    model.fc = nn.Linear(model.fc.in_features, len(class_names))
-    model.load_state_dict(torch.load(DISEASE_MODEL_PATH, map_location="cpu"))
-    model.eval()
-    return model, class_names
+
+def _predict_image(image: Image.Image) -> dict[str, str | float]:
+    model, class_names = _load_model()
+    tensor = preprocess_image(tf.convert_to_tensor(image), training=False)
+    probabilities = model.predict(tf.expand_dims(tensor, axis=0), verbose=0)[0]
+    index = int(tf.argmax(probabilities).numpy())
+    result = {"disease": class_names[index], "confidence": round(float(probabilities[index]), 4)}
+    return {**result, "class": result["disease"]}
+
+
+def predict_disease(image_path: str) -> dict[str, str | float]:
+    """Classify one leaf image from a filesystem path."""
+    with Image.open(image_path) as image:
+        return _predict_image(image.convert("RGB"))
 
 
 def predict(image_bytes: bytes) -> dict[str, str | float]:
-    """
-    Classify a crop leaf image.
+    """Classify image bytes for compatibility with the existing API router."""
+    with Image.open(BytesIO(image_bytes)) as image:
+        return _predict_image(image.convert("RGB"))
 
-    Parameters
-    ----------
-    image_bytes : bytes
-        Raw bytes of a JPEG / PNG image.
 
-    Returns
-    -------
-    dict
-        ``{"class": "Tomato___Late_blight", "confidence": 0.97}``
-    """
-    model, class_names = _load_model()
+if __name__ == "__main__":
+    import sys
 
-    img = Image.open(BytesIO(image_bytes)).convert("RGB")
-    tensor = val_transforms(img).unsqueeze(0)
-
-    with torch.no_grad():
-        outputs = model(tensor)
-        probs = torch.softmax(outputs, dim=1)
-        confidence, idx = probs.max(dim=1)
-
-    return {
-        "class": class_names[idx.item()],
-        "confidence": round(confidence.item(), 4),
-    }
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: python -m modules.disease_detection.predict <image_path>")
+    print(json.dumps(predict_disease(sys.argv[1]), indent=2))
