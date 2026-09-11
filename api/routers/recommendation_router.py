@@ -12,8 +12,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from fastapi import APIRouter
 
-from modules.recommendation.engine import recommend, Recommendation
-from modules.recommendation.predict import recommend_crop
+from modules.recommendation.engine import recommend, recommend_crop, Recommendation
 
 router = APIRouter()
 
@@ -38,15 +37,15 @@ class RecommendationOutput(BaseModel):
 
 
 class CropRecommendationInput(BaseModel):
+    soil: str = Field(..., min_length=1)
+    season: str = Field(..., min_length=1)
+    water_source: str = Field(..., min_length=1)
+    soil_ph: float = Field(..., ge=0, le=14)
     N: float = Field(..., ge=0)
     P: float = Field(..., ge=0)
     K: float = Field(..., ge=0)
     temperature: float
     humidity: float = Field(..., ge=0, le=100)
-    rainfall: float = Field(..., ge=0)
-    soil_moisture: float = Field(..., ge=0, le=100)
-    pH: float = Field(..., ge=0, le=14)
-    season: str = Field(..., min_length=1)
     top_k: int = Field(3, ge=1, le=20)
 
 
@@ -78,4 +77,16 @@ async def get_recommendation(data: RecommendationInput):
 @router.post("/crop", response_model=CropRecommendationOutput)
 async def get_crop_recommendation(data: CropRecommendationInput):
     """Return ranked crop recommendations from the trained tabular model."""
-    return recommend_crop(**data.model_dump())
+    values = data.model_dump()
+    return recommend_crop(
+        soil=values["soil"],
+        season=values["season"],
+        water_source=values["water_source"],
+        soil_ph=values["soil_ph"],
+        temperature=values["temperature"],
+        humidity=values["humidity"],
+        nitrogen=values["N"],
+        phosphorus=values["P"],
+        potassium=values["K"],
+        top_k=values["top_k"],
+    )

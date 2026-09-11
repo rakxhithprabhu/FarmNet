@@ -94,10 +94,16 @@ def _recommendation_frame() -> pd.DataFrame:
     for index in range(12):
         for crop, season in (("Rice", "Kharif"), ("Wheat", "Rabi"), ("Maize", "Summer")):
             rows.append({
-                "N": 80 + index, "P": 35 + index, "K": 40 + index,
-                "temperature": 22 + index % 4, "humidity": 65 + index,
-                "rainfall": 120 + index * 2, "soil_moisture": 55 + index,
-                "pH": 6.2 + (index % 3) * 0.1, "season": season, "crop": crop,
+                "SOIL": "Loamy soil" if index % 2 else "Clay soil",
+                "SEASON": season,
+                "WATER_SOURCE": "irrigated" if index % 2 else "rainfed",
+                "SOIL_PH": 6.2 + (index % 3) * 0.1,
+                "TEMP": 22 + index % 4,
+                "RELATIVE_HUMIDITY": 65 + index,
+                "N": 80 + index,
+                "P": 35 + index,
+                "K": 40 + index,
+                "CROPS": crop,
             })
     return pd.DataFrame(rows)
 
@@ -109,15 +115,19 @@ def test_dataset_validation_and_missing_value_preprocessing(tmp_path):
     frame.to_csv(path, index=False)
     loaded = load_and_validate_dataset(path)
     preprocessor = create_preprocessor()
-    transformed = preprocessor.fit_transform(loaded.drop(columns="crop"))
+    transformed = preprocessor.fit_transform(loaded.drop(columns="CROPS"))
     assert transformed.shape[0] == len(frame)
-    assert build_feature_frame({"N": 1, "P": 2, "K": 3, "temperature": 20, "humidity": 60, "rainfall": 100, "soil_moisture": 50, "pH": 6.5, "season": "Rabi"}).shape == (1, 9)
+    assert build_feature_frame({
+        "soil": "Loamy soil", "season": "Rabi", "water_source": "rainfed",
+        "soil_ph": 6.5, "temperature": 20, "humidity": 60,
+        "nitrogen": 1, "phosphorus": 2, "potassium": 3,
+    }).shape == (1, 9)
 
 
 def test_missing_required_dataset_column(tmp_path):
     path = tmp_path / "invalid.csv"
-    _recommendation_frame().drop(columns="crop").to_csv(path, index=False)
-    with pytest.raises(ValueError, match="crop"):
+    _recommendation_frame().drop(columns="CROPS").to_csv(path, index=False)
+    with pytest.raises(ValueError, match="CROPS"):
         load_and_validate_dataset(path)
 
 
@@ -144,19 +154,26 @@ def test_training_prediction_top_k_and_saved_loading(tmp_path, monkeypatch):
     assert summary["classes"] == ["Maize", "Rice", "Wheat"]
     assert model_path.exists()
     assert metadata_path.exists()
-    assert json.loads(metadata_path.read_text(encoding="utf-8"))["target_column"] == "crop"
+    assert json.loads(metadata_path.read_text(encoding="utf-8"))["target_column"] == "CROPS"
 
-    result = recommend_crop(90, 40, 40, 25, 75, 180, 65, 6.5, "Kharif", top_k=3)
+    result = recommend_crop(
+        "Loamy soil", "Kharif", "irrigated", 6.5, 25, 75, 90, 40, 40, top_k=3,
+    )
     assert len(result["recommendations"]) == 3
     assert {item["crop"] for item in result["recommendations"]} == {"Maize", "Rice", "Wheat"}
-    assert all(0 <= item["confidence"] <= 1 for item in result["recommendations"])
+    assert all(0 <= item["confidence"] <= 100 for item in result["recommendations"])
+    assert all(set(item) == {"crop", "confidence"} for item in result["recommendations"])
 
 
 def test_invalid_prediction_input():
     with pytest.raises(ValueError, match="top_k"):
-        recommend_crop(1, 2, 3, 20, 60, 100, 50, 6.5, "Rabi", top_k=0)
-    with pytest.raises(ValueError, match="season"):
-        build_feature_frame({"N": 1, "P": 2, "K": 3, "temperature": 20, "humidity": 60, "rainfall": 100, "soil_moisture": 50, "pH": 6.5, "season": ""})
+        recommend_crop("Loamy soil", "Rabi", "rainfed", 6.5, 20, 60, 1, 2, 3, top_k=0)
+    with pytest.raises(ValueError, match="SEASON"):
+        build_feature_frame({
+            "soil": "Loamy soil", "season": "", "water_source": "rainfed",
+            "soil_ph": 6.5, "temperature": 20, "humidity": 60,
+            "nitrogen": 1, "phosphorus": 2, "potassium": 3,
+        })
 
 
 def test_crop_recommendation_api(tmp_path, monkeypatch):
@@ -175,8 +192,9 @@ def test_crop_recommendation_api(tmp_path, monkeypatch):
 
     from api.main import app
     response = TestClient(app).post("/api/recommend/crop", json={
-        "N": 90, "P": 40, "K": 40, "temperature": 25, "humidity": 75,
-        "rainfall": 180, "soil_moisture": 65, "pH": 6.5, "season": "Kharif",
+        "soil": "Loamy soil", "season": "Kharif", "water_source": "irrigated",
+        "soil_ph": 6.5, "N": 90, "P": 40, "K": 40,
+        "temperature": 25, "humidity": 75,
     })
     assert response.status_code == 200
     assert len(response.json()["recommendations"]) == 3

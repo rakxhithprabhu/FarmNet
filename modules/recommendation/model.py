@@ -20,5 +20,6 @@ def create_recommendation_model() -> RandomForestClassifier:
         random_state=RECOMMENDATION_RANDOM_STATE,
         min_samples_split=RECOMMENDATION_MIN_SAMPLES_SPLIT,
         min_samples_leaf=RECOMMENDATION_MIN_SAMPLES_LEAF,
+        class_weight="balanced",
         n_jobs=-1,
     )
