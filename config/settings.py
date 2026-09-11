@@ -18,6 +18,10 @@ MODEL_DIR = BASE_DIR / "models"
 YIELD_DATASET_PATH = DATA_DIR / "crop_yield.csv"
 YIELD_MODEL_PATH = MODEL_DIR / "yield_model.joblib"
 
+RECOMMENDATION_DATASET_PATH = DATA_DIR / "crop_recommendation.csv"
+RECOMMENDATION_MODEL_PATH = MODEL_DIR / "crop_recommendation.joblib"
+RECOMMENDATION_METADATA_PATH = MODEL_DIR / "crop_recommendation_metadata.json"
+
 DISEASE_MODEL_PATH = MODEL_DIR / "disease_model.keras"
 DISEASE_CLASS_NAMES_PATH = MODEL_DIR / "disease_classes.json"
 
@@ -56,6 +60,16 @@ DISEASE_LEARNING_RATE = 1e-3
 DISEASE_FINE_TUNE_LEARNING_RATE = 1e-5
 DISEASE_SEED = 42
 DISEASE_NUM_CLASSES: int | None = None  # set dynamically during training
+
+# ---------------------------------------------------------------------------
+# Crop Recommendation - training hyper-parameters
+# ---------------------------------------------------------------------------
+RECOMMENDATION_RANDOM_STATE = 42
+RECOMMENDATION_TEST_SIZE = 0.2
+RECOMMENDATION_N_ESTIMATORS = 300
+RECOMMENDATION_MAX_DEPTH: int | None = None
+RECOMMENDATION_MIN_SAMPLES_SPLIT = 2
+RECOMMENDATION_MIN_SAMPLES_LEAF = 1
 
 # ---------------------------------------------------------------------------
 # Weather API (placeholder – no IoT)

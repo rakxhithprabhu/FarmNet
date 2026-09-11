@@ -12,7 +12,8 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from fastapi import APIRouter
 
-from smart_agriculture.modules.recommendation.engine import recommend, Recommendation
+from modules.recommendation.engine import recommend, Recommendation
+from modules.recommendation.predict import recommend_crop
 
 router = APIRouter()
 
@@ -36,6 +37,23 @@ class RecommendationOutput(BaseModel):
     notes: str
 
 
+class CropRecommendationInput(BaseModel):
+    N: float = Field(..., ge=0)
+    P: float = Field(..., ge=0)
+    K: float = Field(..., ge=0)
+    temperature: float
+    humidity: float = Field(..., ge=0, le=100)
+    rainfall: float = Field(..., ge=0)
+    soil_moisture: float = Field(..., ge=0, le=100)
+    pH: float = Field(..., ge=0, le=14)
+    season: str = Field(..., min_length=1)
+    top_k: int = Field(3, ge=1, le=20)
+
+
+class CropRecommendationOutput(BaseModel):
+    recommendations: list[dict[str, str | float]]
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -55,3 +73,9 @@ async def get_recommendation(data: RecommendationInput):
         medicine=rec.medicine,
         notes=rec.notes,
     )
+
+
+@router.post("/crop", response_model=CropRecommendationOutput)
+async def get_crop_recommendation(data: CropRecommendationInput):
+    """Return ranked crop recommendations from the trained tabular model."""
+    return recommend_crop(**data.model_dump())
