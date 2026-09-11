@@ -13,7 +13,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from App1.config.settings import (
+from config.settings import (
     YIELD_CATEGORICAL_FEATURES,
     YIELD_MODEL_PATH,
     YIELD_NUMERIC_FEATURES,

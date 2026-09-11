@@ -19,12 +19,12 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score
 
-from App1.config.settings import (
+from config.settings import (
     YIELD_CV_FOLDS,
     YIELD_MODEL_PATH,
     YIELD_RANDOM_STATE,
 )
-from App1.modules.yield_prediction.preprocessing import (
+from modules.yield_prediction.preprocessing import (
     load_data,
     split_data,
 )

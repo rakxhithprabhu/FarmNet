@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from App1.config.settings  import (
+from config.settings import (
     YIELD_CATEGORICAL_FEATURES,
     YIELD_DATASET_PATH,
     YIELD_NUMERIC_FEATURES,
