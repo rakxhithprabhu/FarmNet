@@ -7,7 +7,7 @@ This Streamlit UI calls the existing FastAPI backend for yield prediction and cr
 From the project root:
 
 ```bash
-uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+.venv/Scripts/python.exe -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 ## Start the UI

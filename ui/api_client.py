@@ -16,21 +16,25 @@ def _post(base_url: str, endpoint: str, payload: dict[str, Any], timeout: float)
     try:
         response = requests.post(url, json=payload, timeout=timeout)
     except requests.Timeout as exc:
-        raise FarmNetAPIError("The FarmNet service took too long to respond.") from exc
+        raise FarmNetAPIError(
+            f"The FarmNet service at {url} took too long to respond."
+        ) from exc
     except requests.ConnectionError as exc:
         raise FarmNetAPIError(
-            "Unable to connect to the FarmNet prediction service. "
-            "Please make sure the backend is running."
+            f"Unable to connect to the FarmNet prediction service at {url}. "
+            "Please start the backend with the documented command."
         ) from exc
     except requests.RequestException as exc:
-        raise FarmNetAPIError("The FarmNet service could not process the request.") from exc
+        raise FarmNetAPIError(
+            f"The FarmNet service request to {url} could not be completed."
+        ) from exc
 
     if response.status_code >= 400:
         try:
             detail = response.json().get("detail", "The backend rejected the request.")
         except ValueError:
             detail = "The backend rejected the request."
-        raise FarmNetAPIError(str(detail))
+        raise FarmNetAPIError(f"FarmNet returned HTTP {response.status_code}: {detail}")
     try:
         result = response.json()
     except ValueError as exc:
