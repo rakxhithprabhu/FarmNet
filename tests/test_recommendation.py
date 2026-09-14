@@ -198,3 +198,66 @@ def test_crop_recommendation_api(tmp_path, monkeypatch):
     })
     assert response.status_code == 200
     assert len(response.json()["recommendations"]) == 3
+
+
+def test_tuned_pipeline_and_robustness(tmp_path, monkeypatch):
+    from modules.recommendation import train as training_module
+    from modules.recommendation.utils import robustness_stability
+
+    dataset_path = tmp_path / "recommendation.csv"
+    _recommendation_frame().to_csv(dataset_path, index=False)
+    model_path = tmp_path / "crop_recommendation.joblib"
+    metadata_path = tmp_path / "crop_recommendation_metadata.json"
+    monkeypatch.setattr(training_module, "RECOMMENDATION_MODEL_PATH", model_path)
+    monkeypatch.setattr(training_module, "RECOMMENDATION_METADATA_PATH", metadata_path)
+
+    summary = training_module.train(dataset_path, tune=True, tuning_iter=1, tuning_cv=2)
+    assert isinstance(summary["best_params"], dict)
+    assert summary["best_cv_score"] is not None
+    assert 0 <= summary["accuracy"] <= 1
+    assert model_path.exists()
+
+    import joblib
+
+    pipeline = joblib.load(model_path)
+    features = _recommendation_frame().drop(columns="CROPS")
+    stability = robustness_stability(pipeline, features, sample_size=3)
+    assert 0 <= stability["stability_rate"] <= 1
+    assert stability["total_predictions"] > 0
+
+
+def test_shap_explanation_and_reports(tmp_path, monkeypatch):
+    from modules.recommendation import train as training_module
+    from modules.recommendation.explainability import explain_prediction, generate_shap_reports
+
+    dataset_path = tmp_path / "recommendation.csv"
+    _recommendation_frame().to_csv(dataset_path, index=False)
+    model_path = tmp_path / "crop_recommendation.joblib"
+    metadata_path = tmp_path / "crop_recommendation_metadata.json"
+    monkeypatch.setattr(training_module, "RECOMMENDATION_MODEL_PATH", model_path)
+    monkeypatch.setattr(training_module, "RECOMMENDATION_METADATA_PATH", metadata_path)
+    training_module.train(dataset_path)
+
+    import joblib
+
+    pipeline = joblib.load(model_path)
+    explanation = explain_prediction(pipeline, {
+        "soil": "Loamy soil", "season": "Kharif", "water_source": "irrigated",
+        "soil_ph": 6.5, "temperature": 25, "humidity": 75,
+        "nitrogen": 90, "phosphorus": 40, "potassium": 40,
+    })
+    assert explanation["predicted_crop"] in {"Maize", "Rice", "Wheat"}
+    assert {item["feature"] for item in explanation["features"]} == {
+        "SOIL", "SEASON", "WATER_SOURCE", "SOIL_PH", "TEMP",
+        "RELATIVE_HUMIDITY", "N", "P", "K",
+    }
+
+    reports = generate_shap_reports(
+        pipeline,
+        _recommendation_frame().drop(columns="CROPS"),
+        tmp_path / "reports",
+        max_samples=3,
+    )
+    assert not reports["importance"].empty
+    assert (tmp_path / "reports" / "shap_feature_importance.csv").exists()
+    assert (tmp_path / "reports" / "shap_summary.png").exists()

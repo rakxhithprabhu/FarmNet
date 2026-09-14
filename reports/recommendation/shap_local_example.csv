@@ -1,0 +1,10 @@
+feature,value,impact,direction
+SOIL,salty clay Loamy soil,0.089198,positive
+SEASON,kharif,0.120671,positive
+WATER_SOURCE,rainfed,0.005123,positive
+SOIL_PH,7.7,0.0,positive
+TEMP,24.0,0.056025,positive
+RELATIVE_HUMIDITY,95.6,0.047254,positive
+N,77.2,0.057562,positive
+P,30.8,0.069356,positive
+K,22.5,0.041539,positive

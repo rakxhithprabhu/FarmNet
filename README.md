@@ -1,4 +1,4 @@
-# 🌾 Smart Agriculture Platform
+# Smart Agriculture Platform
 
 An **Integrated Machine Learning-Based Smart Agriculture Platform** that provides:
 
@@ -6,7 +6,7 @@ An **Integrated Machine Learning-Based Smart Agriculture Platform** that provide
 |---|---|---|
 | **Yield Prediction** | Forecast crop yield (tons/hectare) | RF, XGBoost, Linear Regression |
 | **Disease Detection** | Classify crop leaf diseases | CNN (ResNet-18 transfer learning) |
-| **Recommendation** | Suggest fertiliser & medicine | Rule-based engine |
+| **Recommendation** | Rank suitable crops from soil and weather inputs | Random Forest pipeline |
 
 > **No IoT / embedded hardware required.** Weather data is fetched via API.
 
@@ -51,44 +51,58 @@ smart_agriculture/
 
 ## Quick Start
 
+Run all commands from the repository root (`FarmNet`). On Windows, use the project
+virtual environment explicitly so the interpreter and installed packages match:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell activation is unavailable, prefix commands with `.\.venv\Scripts\python.exe`.
+
 ### 1. Install Dependencies
 
-```bash
-pip install -r smart_agriculture/requirements.txt
+```powershell
+python -m pip install -r requirements.txt
 ```
 
-### 2. Generate Synthetic Dataset (for development)
+### 2. Train the Crop Recommendation Model
 
-```bash
-python -m smart_agriculture.data.generate_dataset
+```powershell
+python -m modules.recommendation.train
 ```
 
-### 3. Train the Yield Prediction Model
+Optional tuning, validation, and SHAP reports:
 
-```bash
-python -m smart_agriculture.modules.yield_prediction.train
+```powershell
+python -m modules.recommendation.train --tune --enhanced-validation --reports
 ```
 
-### 4. Train the Disease Detection Model
+The command saves `models/crop_recommendation.joblib` and
+`models/crop_recommendation_metadata.json`.
 
-Requires the [PlantVillage dataset](https://github.com/spMohanty/PlantVillage-Dataset):
+### 3. Start the API Server
 
-```bash
-python -m smart_agriculture.modules.disease_detection.train /path/to/plantvillage
+```powershell
+python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 5. Start the API Server
+Open `http://localhost:8000/docs` for Swagger UI. The crop recommendation endpoint is
+`POST /api/recommend/crop` and expects `soil`, `season`, `water_source`, `soil_ph`,
+`N`, `P`, `K`, `temperature`, `humidity`, and optional `top_k`.
 
-```bash
-uvicorn smart_agriculture.api.main:app --reload --host 0.0.0.0 --port 8000
+Example request:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/recommend/crop `
+	-H "Content-Type: application/json" `
+	-d '{"soil":"Loamy soil","season":"Kharif","water_source":"irrigated","soil_ph":6.5,"N":90,"P":40,"K":40,"temperature":25,"humidity":75,"top_k":3}'
 ```
 
-Then visit **http://localhost:8000/docs** for the interactive Swagger UI.
+### 4. Run Tests
 
-### 6. Run Tests
-
-```bash
-pytest smart_agriculture/tests/ -v
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
 ---
@@ -103,6 +117,7 @@ pytest smart_agriculture/tests/ -v
 | `POST` | `/api/disease/predict` | Classify leaf disease (image upload) |
 | `POST` | `/api/disease/train` | Train disease model |
 | `POST` | `/api/recommend/` | Get fertiliser & medicine recommendation |
+| `POST` | `/api/recommend/crop` | Rank crops from soil and weather inputs |
 
 ---
 
@@ -118,10 +133,10 @@ pytest smart_agriculture/tests/ -v
 - **ResNet-18 with transfer learning** – pre-trained on ImageNet, only the final FC layer is fine-tuned. This keeps training fast and accurate even with limited data.
 - Data augmentation (flips, rotations, colour jitter) helps prevent over-fitting.
 
-### Recommendation Engine
-- A **transparent, rule-based** system maps disease classes to medicines and yield levels to fertiliser suggestions.
-- Weather adjustments (temperature, humidity) modify recommendations in real time.
-- Easy for domain experts to audit and extend without retraining.
+### Crop Recommendation Model
+- A preprocessing and Random Forest pipeline handles categorical and numerical features.
+- The training command reports evaluation metrics and persists the model plus metadata.
+- The separate `/api/recommend/` endpoint remains the transparent rule-based fertiliser and medicine recommender.
 
 ---
 
