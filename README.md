@@ -6,7 +6,7 @@ An **Integrated Machine Learning-Based Smart Agriculture Platform** that provide
 |---|---|---|
 | **Yield Prediction** | Forecast crop yield (tons/hectare) | RF, XGBoost, Linear Regression |
 | **Disease Detection** | Classify crop leaf diseases | CNN (ResNet-18 transfer learning) |
-| **Recommendation** | Suggest fertiliser & medicine | Rule-based engine |
+| **Recommendation** | Rank suitable crops from farm and weather inputs | Random Forest pipeline |
 
 > **No IoT / embedded hardware required.** Weather data is fetched via API.
 
@@ -49,46 +49,118 @@ smart_agriculture/
 
 ---
 
-## Quick Start
 
-### 1. Install Dependencies
+### 1. Create and Activate the Virtual Environment
 
-```bash
-pip install -r smart_agriculture/requirements.txt
+PowerShell:
+
+```powershell
+cd FarmNet
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-### 2. Generate Synthetic Dataset (for development)
+If PowerShell blocks activation, run:
 
-```bash
-python -m smart_agriculture.data.generate_dataset
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Train the Yield Prediction Model
+### 2. Install Dependencies
 
 ```bash
-python -m smart_agriculture.modules.yield_prediction.train
+python -m pip install -r requirements.txt
 ```
 
-### 4. Train the Disease Detection Model
+### 3. Generate Synthetic Dataset (for development)
+
+```bash
+python -m data.generate_dataset
+```
+
+### 4. Train the Yield Prediction Model
+
+```bash
+python -m modules.yield_prediction.train
+```
+
+### 5. Train the Disease Detection Model
 
 Requires the [PlantVillage dataset](https://github.com/spMohanty/PlantVillage-Dataset):
 
 ```bash
-python -m smart_agriculture.modules.disease_detection.train /path/to/plantvillage
+python -m modules.disease_detection.train /path/to/plantvillage
 ```
 
-### 5. Start the API Server
+### 6. Configure Weather Retrieval
+
+Recommendation and yield prediction retrieve weather data on the backend. Set the
+OpenWeather API key before starting the backend:
+
+PowerShell:
+
+```powershell
+$env:WEATHER_API_KEY = "your-openweather-api-key"
+```
+
+Command Prompt:
+
+```cmd
+set WEATHER_API_KEY=your-openweather-api-key
+```
+
+Do not put the API key in Streamlit code or commit it to the repository.
+
+### 7. Start the API Server
 
 ```bash
-uvicorn smart_agriculture.api.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Then visit **http://localhost:8000/docs** for the interactive Swagger UI.
 
-### 6. Run Tests
+Keep this terminal running.
+
+### 8. Start the Streamlit UI
+
+Open a second terminal, navigate to the repository root, and activate the same
+virtual environment:
+
+PowerShell:
+
+```powershell
+cd S:\Project26\Model0.1\App5\FarmNet
+.\.venv\Scripts\Activate.ps1
+streamlit run ui/app.py
+```
+
+If the environment is already activated, run only:
+
+```powershell
+streamlit run ui/app.py
+```
+
+Streamlit opens the UI at **http://localhost:8501**. The UI uses
+`http://127.0.0.1:8000` for the backend by default. To use another backend URL:
+
+```powershell
+$env:FARMNET_API_URL = "http://127.0.0.1:8000"
+streamlit run ui/app.py
+```
+
+In the UI:
+
+1. Choose **Disease Detection**, **Crop Recommendation**, or **Crop Yield Prediction** from the sidebar.
+2. Enter the farmer inputs shown by the selected page.
+3. Enter the farm location for recommendation or yield prediction so the backend can retrieve weather.
+4. Upload a crop leaf image for disease detection.
+5. Submit the form and view the prediction result.
+
+### 9. Run Tests
 
 ```bash
-pytest smart_agriculture/tests/ -v
+python -m pytest -q
 ```
 
 ---
@@ -108,6 +180,34 @@ pytest smart_agriculture/tests/ -v
 
 ## Model Design Decisions
 
+## Input Architecture
+
+The UI sends farmer values and a farm location to the backend. The backend retrieves
+weather, validates both sources, merges them, and calls the existing model.
+
+### Crop Recommendation
+
+| Feature | Source | Validation |
+|---|---|---|
+| `N`, `P`, `K` | Farmer | Non-negative numeric |
+| `pH` | Farmer | 0 to 14 |
+| `season`, `soil_moisture` | Farmer | Non-empty season; moisture 0 to 100 |
+| `temperature`, `humidity`, `rainfall` | Weather API | Validated numeric weather response |
+
+### Yield Prediction
+
+| Feature | Source | Validation |
+|---|---|---|
+| `soil_type`, `crop_type`, `season` | Farmer | Non-empty text |
+| `area_hectares` | Farmer | Greater than 0 |
+| `temperature_c`, `humidity_pct`, `rainfall_mm` | Weather API | Validated numeric weather response |
+
+### Disease Detection
+
+| Input | Source | Validation |
+|---|---|---|
+| Crop leaf image | User upload | JPEG, PNG, WEBP, or GIF |
+
 ### Yield Prediction
 - **Random Forest** – robust to outliers, handles non-linear relationships, and provides feature importance.
 - **XGBoost** – gradient boosting often achieves the lowest error on tabular data.
@@ -119,9 +219,8 @@ pytest smart_agriculture/tests/ -v
 - Data augmentation (flips, rotations, colour jitter) helps prevent over-fitting.
 
 ### Recommendation Engine
-- A **transparent, rule-based** system maps disease classes to medicines and yield levels to fertiliser suggestions.
-- Weather adjustments (temperature, humidity) modify recommendations in real time.
-- Easy for domain experts to audit and extend without retraining.
+- The crop recommendation endpoint uses the persisted Random Forest pipeline.
+- The separate `/api/recommend/` endpoint remains a transparent rule-based fertiliser and medicine recommender.
 
 ---
 

@@ -52,3 +52,31 @@ def predict_yield(data: dict[str, Any], base_url: str, timeout: float = 10.0) ->
 def recommend_crop(data: dict[str, Any], base_url: str, timeout: float = 10.0) -> dict[str, Any]:
     """Call the existing trained crop recommendation endpoint."""
     return _post(base_url, "/api/recommend/crop", data, timeout)
+
+
+def predict_disease(image_bytes: bytes, filename: str, base_url: str, timeout: float = 30.0) -> dict[str, Any]:
+    """Upload one crop image to the existing disease endpoint."""
+    url = f"{base_url.rstrip('/')}/api/disease/predict"
+    try:
+        response = requests.post(
+            url,
+            files={"file": (filename, image_bytes, "image/jpeg")},
+            timeout=timeout,
+        )
+    except requests.Timeout as exc:
+        raise FarmNetAPIError("Disease detection took too long to respond.") from exc
+    except requests.RequestException as exc:
+        raise FarmNetAPIError("The disease detection service could not be reached.") from exc
+    if response.status_code >= 400:
+        try:
+            detail = response.json().get("detail", "The image could not be processed.")
+        except ValueError:
+            detail = "The image could not be processed."
+        raise FarmNetAPIError(f"FarmNet returned HTTP {response.status_code}: {detail}")
+    try:
+        result = response.json()
+    except ValueError as exc:
+        raise FarmNetAPIError("The disease service returned an invalid response.") from exc
+    if not isinstance(result, dict):
+        raise FarmNetAPIError("The disease service returned an invalid response.")
+    return result

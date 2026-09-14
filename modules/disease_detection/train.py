@@ -61,11 +61,15 @@ def _build_model(num_classes: int, weights: str | None = "imagenet") -> tf.keras
 
 def _callbacks() -> list[tf.keras.callbacks.Callback]:
     DISEASE_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return [
-        tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3),
-        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=2),
-        tf.keras.callbacks.ModelCheckpoint(DISEASE_MODEL_PATH, monitor="val_accuracy", save_best_only=True),
-    ]
+    callbacks: list[tf.keras.callbacks.Callback] = []
+    callbacks.append(tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3))
+    callbacks.append(tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=2))
+    callbacks.append(
+        tf.keras.callbacks.ModelCheckpoint(
+            str(DISEASE_MODEL_PATH), monitor="val_accuracy", save_best_only=True
+        )
+    )
+    return callbacks
 
 
 def train(dataset_root: str | Path = DISEASE_DATASET_DIR, epochs: int = DISEASE_EPOCHS, batch_size: int = DISEASE_BATCH_SIZE, lr: float = DISEASE_LEARNING_RATE, save: bool = True) -> dict:

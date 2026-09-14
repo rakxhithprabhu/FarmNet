@@ -8,10 +8,14 @@ Mounts three routers:
 """
 
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
 
 from api.routers.yield_router import router as yield_router
 from api.routers.disease_router import router as disease_router
 from api.routers.recommendation_router import router as rec_router
+
+load_dotenv()
 
 app = FastAPI(
     title="Smart Agriculture Platform",

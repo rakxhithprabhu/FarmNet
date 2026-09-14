@@ -10,8 +10,9 @@ POST /api/recommend/
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
+from api.services.weather import WeatherServiceError, get_weather
 from modules.recommendation.engine import recommend, Recommendation
 from modules.recommendation.predict import recommend_crop
 
@@ -41,9 +42,10 @@ class CropRecommendationInput(BaseModel):
     N: float = Field(..., ge=0)
     P: float = Field(..., ge=0)
     K: float = Field(..., ge=0)
-    temperature: float
-    humidity: float = Field(..., ge=0, le=100)
-    rainfall: float = Field(..., ge=0)
+    location: str | None = Field(None, min_length=1)
+    temperature: float | None = None
+    humidity: float | None = Field(None, ge=0, le=100)
+    rainfall: float | None = Field(None, ge=0)
     soil_moisture: float = Field(..., ge=0, le=100)
     pH: float = Field(..., ge=0, le=14)
     season: str = Field(..., min_length=1)
@@ -52,6 +54,7 @@ class CropRecommendationInput(BaseModel):
 
 class CropRecommendationOutput(BaseModel):
     recommendations: list[dict[str, str | float]]
+    weather: dict[str, float] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -78,4 +81,25 @@ async def get_recommendation(data: RecommendationInput):
 @router.post("/crop", response_model=CropRecommendationOutput)
 async def get_crop_recommendation(data: CropRecommendationInput):
     """Return ranked crop recommendations from the trained tabular model."""
-    return recommend_crop(**data.model_dump())
+    values = data.model_dump()
+    weather = {
+        "temperature": values.pop("temperature"),
+        "humidity": values.pop("humidity"),
+        "rainfall": values.pop("rainfall"),
+    }
+    if any(value is None for value in weather.values()):
+        try:
+            retrieved = get_weather(values.pop("location") or "")
+        except WeatherServiceError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        weather = retrieved
+    else:
+        values.pop("location", None)
+    result = recommend_crop(
+        N=values["N"], P=values["P"], K=values["K"],
+        temperature=weather["temperature"], humidity=weather["humidity"],
+        rainfall=weather["rainfall"], soil_moisture=values["soil_moisture"],
+        pH=values["pH"], season=values["season"],
+        top_k=values["top_k"],
+    )
+    return {**result, "weather": weather}

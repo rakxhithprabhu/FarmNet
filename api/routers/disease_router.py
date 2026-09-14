@@ -33,6 +33,8 @@ class DiseaseOutput(BaseModel):
 @router.post("/predict", response_model=DiseaseOutput)
 async def predict_disease(file: UploadFile = File(...)):
     """Classify a crop leaf image and return the disease class."""
+    if file.content_type not in {"image/jpeg", "image/png", "image/webp", "image/gif"}:
+        raise HTTPException(status_code=415, detail="Upload a JPEG, PNG, WEBP, or GIF crop image.")
     try:
         from modules.disease_detection.predict import predict
         contents = await file.read()
@@ -47,7 +49,7 @@ async def predict_disease(file: UploadFile = File(...)):
             detail="Disease model not trained yet. Call POST /api/disease/train first.",
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail="The crop image could not be analyzed.") from exc
 
 
 @router.post("/train")

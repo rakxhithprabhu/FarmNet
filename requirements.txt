@@ -19,10 +19,13 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 requests>=2.31.0
+python-dotenv>=1.0.0
 
 # Testing
 pytest>=7.4.0
 httpx>=0.25.0
+requests>=2.31.0
+streamlit>=1.35.0
 
 # Streamlit UI
 streamlit>=1.36.0
