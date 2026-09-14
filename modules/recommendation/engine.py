@@ -71,6 +71,35 @@ LOW_YIELD_THRESHOLD = 2.0
 HIGH_YIELD_THRESHOLD = 5.0
 
 
+def recommend_crop(
+    soil: str,
+    season: str,
+    water_source: str,
+    soil_ph: float,
+    temperature: float,
+    humidity: float,
+    nitrogen: float,
+    phosphorus: float,
+    potassium: float,
+    top_k: int = 3,
+) -> dict:
+    """Delegate crop prediction to the trained recommendation pipeline."""
+    from modules.recommendation.predict import recommend_crop as predict_crop
+
+    return predict_crop(
+        soil=soil,
+        season=season,
+        water_source=water_source,
+        soil_ph=soil_ph,
+        temperature=temperature,
+        humidity=humidity,
+        nitrogen=nitrogen,
+        phosphorus=phosphorus,
+        potassium=potassium,
+        top_k=top_k,
+    )
+
+
 def _classify_yield(yield_value: float) -> str:
     if yield_value < LOW_YIELD_THRESHOLD:
         return "low"

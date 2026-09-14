@@ -1,4 +1,4 @@
-# 🌾 Smart Agriculture Platform
+# Smart Agriculture Platform
 
 An **Integrated Machine Learning-Based Smart Agriculture Platform** that provides:
 
@@ -66,6 +66,16 @@ If PowerShell blocks activation, run:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
+## Quick Start
+
+Run all commands from the repository root (`FarmNet`). On Windows, use the project
+virtual environment explicitly so the interpreter and installed packages match:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell activation is unavailable, prefix commands with `.\.venv\Scripts\python.exe`.
 
 ### 2. Install Dependencies
 
@@ -175,6 +185,7 @@ python -m pytest -q
 | `POST` | `/api/disease/predict` | Classify leaf disease (image upload) |
 | `POST` | `/api/disease/train` | Train disease model |
 | `POST` | `/api/recommend/` | Get fertiliser & medicine recommendation |
+| `POST` | `/api/recommend/crop` | Rank crops from soil and weather inputs |
 
 ---
 

@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from smart_agriculture.config.settings import (
+from config.settings import (
     YIELD_CATEGORICAL_FEATURES,
     YIELD_NUMERIC_FEATURES,
     YIELD_TARGET,
@@ -52,14 +52,14 @@ def _make_csv(tmp_path: str, n: int = 200) -> str:
 
 class TestPreprocessing:
     def test_load_data_returns_dataframe(self, tmp_path):
-        from smart_agriculture.modules.yield_prediction.preprocessing import load_data
+        from modules.yield_prediction.preprocessing import load_data
         csv_path = _make_csv(str(tmp_path))
         df = load_data(csv_path)
         assert isinstance(df, pd.DataFrame)
         assert YIELD_TARGET in df.columns
 
     def test_split_data_shapes(self, tmp_path):
-        from smart_agriculture.modules.yield_prediction.preprocessing import load_data, split_data
+        from modules.yield_prediction.preprocessing import load_data, split_data
         csv_path = _make_csv(str(tmp_path))
         df = load_data(csv_path)
         X_train, X_test, y_train, y_test, preprocessor = split_data(df)
@@ -69,7 +69,7 @@ class TestPreprocessing:
 
 class TestTraining:
     def test_train_and_select(self, tmp_path):
-        from smart_agriculture.modules.yield_prediction.train import train_and_select
+        from modules.yield_prediction.train import train_and_select
         csv_path = _make_csv(str(tmp_path))
         # Avoid writing to the real model dir
         summary = train_and_select(csv_path=csv_path, save=False)
@@ -88,9 +88,9 @@ class TestPrediction:
     def test_predict_returns_float(self, tmp_path):
         """Train, save, then predict."""
         import joblib
-        from smart_agriculture.modules.yield_prediction.train import train_and_select
-        from smart_agriculture.modules.yield_prediction.predict import predict
-        from smart_agriculture.config import settings
+        from modules.yield_prediction.train import train_and_select
+        from modules.yield_prediction.predict import predict
+        from config import settings
 
         csv_path = _make_csv(str(tmp_path))
         # Temporarily redirect model path

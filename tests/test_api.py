@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from smart_agriculture.api.main import app
+from api.main import app
 
 client = TestClient(app)
 
