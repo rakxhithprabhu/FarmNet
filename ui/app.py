@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import os
 
+import pandas as pd
 import streamlit as st
+
+from config.settings import RECOMMENDATION_DATASET_PATH
 
 try:
     from ui.api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
@@ -71,22 +74,36 @@ def _yield_page() -> None:
 def _recommendation_page() -> None:
     st.title("Crop Recommendation")
     st.caption("Ranked recommendations are provided by the trained FarmNet model.")
+    recommendation_data = pd.read_csv(
+        RECOMMENDATION_DATASET_PATH,
+        usecols=["SOIL", "SEASON", "WATER_SOURCE"],
+    )
+    soil_options = (
+        recommendation_data["SOIL"].dropna().astype(str).str.strip().drop_duplicates().tolist()
+    )
+    season_options = (
+        recommendation_data["SEASON"].dropna().astype(str).str.strip().drop_duplicates().tolist()
+    )
+    water_source_options = (
+        recommendation_data["WATER_SOURCE"].dropna().astype(str).str.strip().drop_duplicates().tolist()
+    )
     with st.form("recommendation_form"):
         st.subheader("Farmer Inputs")
-        season = st.selectbox("Season", ["Kharif", "Rabi", "Summer", "Winter"])
+        soil = st.selectbox("Soil type", soil_options)
+        water_source = st.selectbox("Water source", water_source_options)
+        season = st.selectbox("Season", season_options)
         n, p, k, ph = st.columns(4)
         nitrogen = n.number_input("Nitrogen (N)", min_value=0.0, value=90.0)
         phosphorus = p.number_input("Phosphorus (P)", min_value=0.0, value=42.0)
         potassium = k.number_input("Potassium (K)", min_value=0.0, value=43.0)
         soil_ph = ph.number_input("Soil pH", min_value=0.0, max_value=14.0, value=6.5)
-        soil_moisture = st.number_input("Soil moisture (%)", min_value=0.0, max_value=100.0, value=65.0)
         st.subheader("Automatically Retrieved Data")
         location = st.text_input("Farm location", placeholder="City or town")
         submitted = st.form_submit_button("Recommend Crops", type="primary")
     if submitted:
         payload = {
-            "season": season, "soil_moisture": soil_moisture,
-            "pH": soil_ph, "N": nitrogen, "P": phosphorus, "K": potassium,
+            "soil": soil, "season": season, "water_source": water_source,
+            "soil_ph": soil_ph, "N": nitrogen, "P": phosphorus, "K": potassium,
             "location": location, "top_k": 3,
         }
         if not location.strip():

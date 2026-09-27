@@ -5,13 +5,21 @@ from __future__ import annotations
 import json
 
 import joblib
+from sklearn.pipeline import Pipeline
 
 from config.settings import RECOMMENDATION_METADATA_PATH, RECOMMENDATION_MODEL_PATH
 from modules.recommendation.preprocessing import FEATURES, build_feature_frame
 
 
 def _load_artifacts() -> tuple[object, dict]:
-    pipeline = joblib.load(RECOMMENDATION_MODEL_PATH)
+    artifact = joblib.load(RECOMMENDATION_MODEL_PATH)
+    if isinstance(artifact, dict) and {"model", "preprocessor"} <= artifact.keys():
+        pipeline = Pipeline([
+            ("preprocessor", artifact["preprocessor"]),
+            ("classifier", artifact["model"]),
+        ])
+    else:
+        pipeline = artifact
     with open(RECOMMENDATION_METADATA_PATH, encoding="utf-8") as file:
         metadata = json.load(file)
     return pipeline, metadata
