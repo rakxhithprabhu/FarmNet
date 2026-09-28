@@ -9,16 +9,7 @@ from __future__ import annotations
 
 # from config.settings import RECOMMENDATION_DATASET_PATH
 
-# try:
-#     from ui.api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
-#     from ui.components import show_disease_result, show_recommendations, show_yield_result
-# except ModuleNotFoundError:
-#     from api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
-#     from components import show_disease_result, show_recommendations, show_yield_result
-
-# st.set_page_config(page_title="FarmNet", page_icon="🌾", layout="wide")
-
-# API_URL = os.getenv("FARMNET_API_URL", "http://127.0.0.1:8000")
+#
 """FarmNet Streamlit dashboard."""
 
 
@@ -61,6 +52,16 @@ except ModuleNotFoundError:
         show_recommendations,
         show_yield_result,
     )
+try:
+    from ui.api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
+    from ui.components import show_disease_result, show_recommendations, show_yield_result
+except ModuleNotFoundError:
+    from api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
+    from components import show_disease_result, show_recommendations, show_yield_result
+
+st.set_page_config(page_title="FarmNet", page_icon="🌾", layout="wide")
+
+API_URL = os.getenv("FARMNET_API_URL", "http://127.0.0.1:8000")
 
 
 def _home() -> None:
