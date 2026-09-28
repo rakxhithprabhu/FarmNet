@@ -2,7 +2,35 @@
 
 from __future__ import annotations
 
+# import os
+
+# import pandas as pd
+# import streamlit as st
+
+# from config.settings import RECOMMENDATION_DATASET_PATH
+
+# try:
+#     from ui.api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
+#     from ui.components import show_disease_result, show_recommendations, show_yield_result
+# except ModuleNotFoundError:
+#     from api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
+#     from components import show_disease_result, show_recommendations, show_yield_result
+
+# st.set_page_config(page_title="FarmNet", page_icon="🌾", layout="wide")
+
+# API_URL = os.getenv("FARMNET_API_URL", "http://127.0.0.1:8000")
+"""FarmNet Streamlit dashboard."""
+
+
+
 import os
+import sys
+from pathlib import Path
+
+# Add the project root to Python's import path.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 import streamlit as st
@@ -10,15 +38,29 @@ import streamlit as st
 from config.settings import RECOMMENDATION_DATASET_PATH
 
 try:
-    from ui.api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
-    from ui.components import show_disease_result, show_recommendations, show_yield_result
+    from ui.api_client import (
+        FarmNetAPIError,
+        predict_disease,
+        predict_yield,
+        recommend_crop,
+    )
+    from ui.components import (
+        show_disease_result,
+        show_recommendations,
+        show_yield_result,
+    )
 except ModuleNotFoundError:
-    from api_client import FarmNetAPIError, predict_disease, predict_yield, recommend_crop
-    from components import show_disease_result, show_recommendations, show_yield_result
-
-st.set_page_config(page_title="FarmNet", page_icon="🌾", layout="wide")
-
-API_URL = os.getenv("FARMNET_API_URL", "http://127.0.0.1:8000")
+    from api_client import (
+        FarmNetAPIError,
+        predict_disease,
+        predict_yield,
+        recommend_crop,
+    )
+    from components import (
+        show_disease_result,
+        show_recommendations,
+        show_yield_result,
+    )
 
 
 def _home() -> None:
